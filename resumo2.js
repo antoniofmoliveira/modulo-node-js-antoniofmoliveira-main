@@ -1,4 +1,5 @@
-import { createInterface } from "readline";
+import * as readline from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
 import { promises as fs } from "fs";
 import { EventEmitter } from "node:events";
 
@@ -6,10 +7,7 @@ console.time("A execução demorou");
 
 const ee = new EventEmitter();
 
-const leitor = createInterface({
-    input: process.stdin,
-    output: process.stdout,
-});
+process.stdin.setEncoding("utf8");
 
 const exibeResumo = async (resposta) => {
     try {
@@ -29,58 +27,43 @@ const exibeResumo = async (resposta) => {
 
 ee.on("finalizado", exibeResumo);
 
-const pergunta = (prompt) => {
-    return new Promise((resolve) =>
-        leitor.question(prompt, (res) => resolve(res))
-    );
-};
+const rl = readline.createInterface({ input, output });
 
-const processaUm = async (nomeArquivo) => {
-    try {
-        const data = await fs.readFile(nomeArquivo, "utf8");
-
-        let linhasTexto = 0;
-        let somaNumeros = 0;
-
-        const linhas = data.split("\n");
-        for (const linha of linhas) {
-            if (linha.trim().length === 0) continue;
-            const num = parseInt(linha);
-            if (isNaN(num) || num != linha) {
-                linhasTexto += 1;
-                continue;
-            }
-            somaNumeros += num;
-        }
-
-        ee.emit("finalizado", {
-            nomeArquivo: nomeArquivo,
-            somaNumeros: somaNumeros,
-            linhasTexto: linhasTexto,
-        });
-    } catch (error) {
-        console.log(error);
-    }
-};
-
-const processaVarios = async () => {
+const main = async () => {
     let continua = true;
 
     while (continua) {
-        const nomeArquivo = await pergunta(`Informe o caminho do arquivo `);
+        const nomeArquivo = await rl.question(`Informe o caminho do arquivo `);
+        try {
+            const data = await fs.readFile(nomeArquivo, "utf8");
 
-        const proc = await processaUm(nomeArquivo);
+            let linhasTexto = 0;
+            let somaNumeros = 0;
 
-        const res = await pergunta("\nNovamente? (S/N) ");
+            const linhas = data.split("\n");
+            for (const linha of linhas) {
+                if (linha.trim().length === 0) continue;
+                const num = parseInt(linha);
+                if (isNaN(num) || num != linha) {
+                    linhasTexto += 1;
+                    continue;
+                }
+                somaNumeros += num;
+            }
+
+            ee.emit("finalizado", {
+                nomeArquivo: nomeArquivo,
+                somaNumeros: somaNumeros,
+                linhasTexto: linhasTexto,
+            });
+        } catch (error) {
+            console.log(error);
+        }
+        const res = await rl.question("\nNovamente? (S/N) ");
         continua = res === "S";
     }
-};
 
-const main = async () => {
-    await processaVarios();
-
-    leitor.close();
-
+    rl.close;
     console.timeEnd("A execução demorou");
     process.exit(0);
 };
@@ -88,7 +71,7 @@ const main = async () => {
 main();
 
 /*
-$node resumo
+$ node resumo2
 Informe o caminho do arquivo /home/antonio/Downloads/modulo-node-js-antoniofmoliveira-main/arquivo.txt
 
 Resumo do tratamento do arquivo '/home/antonio/Downloads/modulo-node-js-antoniofmoliveira-main/arquivo.txt':
@@ -109,9 +92,7 @@ Informe o caminho do arquivo /home/antonio/Downloads/modulo-node-js-antoniofmoli
 Error: ENOENT: no such file or directory, open '/home/antonio/Downloads/modulo-node-js-antoniofmoliveira-main/arquivo.tx'
     at async open (node:internal/fs/promises:641:25)
     at async Object.readFile (node:internal/fs/promises:1254:14)
-    at async processaUm (file:///home/antonio/Downloads/modulo-node-js-antoniofmoliveira-main/resumo.js:73:22)
-    at async processaVarios (file:///home/antonio/Downloads/modulo-node-js-antoniofmoliveira-main/resumo.js:106:22)
-    at async main (file:///home/antonio/Downloads/modulo-node-js-antoniofmoliveira-main/resumo.js:114:5) {
+    at async main (file:///home/antonio/Downloads/modulo-node-js-antoniofmoliveira-main/resumo2.js:38:26) {
   errno: -2,
   code: 'ENOENT',
   syscall: 'open',
@@ -127,5 +108,5 @@ A soma dos números isolado nas linhas do arquivo é 55.
 
 
 Novamente? (S/N) 
-A execução demorou: 35.912s
+A execução demorou: 35.594s
 */

@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "tarefa modulo nodejs",
   "main": "resumo.js",
-  "type":"module",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "antoniofmoliveira@outlook.com",
   "license": "ISC"
+
 }
