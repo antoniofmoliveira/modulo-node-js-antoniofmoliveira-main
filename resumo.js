@@ -54,9 +54,9 @@ const processaUm = async (nomeArquivo) => {
         }
 
         ee.emit("finalizado", {
-            nomeArquivo: nomeArquivo,
-            somaNumeros: somaNumeros,
-            linhasTexto: linhasTexto,
+            nomeArquivo,
+            somaNumeros,
+            linhasTexto,
         });
     } catch (error) {
         console.log(error);
