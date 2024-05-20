@@ -1,16 +1,28 @@
+/*
+Usando as versões promise de fs e envolvendo readline em uma promise
+*/
 import { createInterface } from "readline";
 import { promises as fs } from "fs";
 import { EventEmitter } from "node:events";
 
+// um label mais esclarecedor para contagem de tempos
 console.time("A execução demorou");
 
-const ee = new EventEmitter();
-
+// criando a interface de readline
 const leitor = createInterface({
     input: process.stdin,
     output: process.stdout,
 });
+// envolvendo readline em uma promise
+const pergunta = (prompt) => {
+    return new Promise((resolve) =>
+        leitor.question(prompt, (res) => resolve(res))
+    );
+};
 
+// tratamento de eventos
+const ee = new EventEmitter();
+// exibição do resumo de cada arquivo. resposta é um objeto com 3 propriedades
 const exibeResumo = async (resposta) => {
     try {
         console.log(
@@ -26,33 +38,33 @@ const exibeResumo = async (resposta) => {
         console.log(erro);
     }
 };
-
+// usando on porque vários arquivos podem ser processados
 ee.on("finalizado", exibeResumo);
 
-const pergunta = (prompt) => {
-    return new Promise((resolve) =>
-        leitor.question(prompt, (res) => resolve(res))
-    );
-};
-
+// função que trata apenas um arquivo
 const processaUm = async (nomeArquivo) => {
     try {
+        // obtendo conteúdo do arquivo
         const data = await fs.readFile(nomeArquivo, "utf8");
-
+        // acumuladores conforme solicitado pela tarefa
         let linhasTexto = 0;
         let somaNumeros = 0;
-
+        // cria array com as linhas do arquivo. para windows use \r\n
         const linhas = data.split("\n");
+        // tratamento de cada linha
         for (const linha of linhas) {
+            // a linha está vazia então é ignorada
             if (linha.trim().length === 0) continue;
             const num = parseInt(linha);
+            // a linha contém texto ou um número seguido por texto
             if (isNaN(num) || num != linha) {
                 linhasTexto += 1;
                 continue;
             }
+            // a linha é um número
             somaNumeros += num;
         }
-
+        // emite evento finalizado para o arquivo com um objeto com as respostas
         ee.emit("finalizado", {
             nomeArquivo,
             somaNumeros,
@@ -63,24 +75,28 @@ const processaUm = async (nomeArquivo) => {
     }
 };
 
+// função que controla o laço para tramento de vários arquivos
 const processaVarios = async () => {
+    // controle do loop
     let continua = true;
 
     while (continua) {
+        // obtem nome do arquivo
         const nomeArquivo = await pergunta(`Informe o caminho do arquivo `);
-
+        // processa o arquivo
         const proc = await processaUm(nomeArquivo);
-
+        // executa novamente? somente aceita S maiúscula qualquer outro encerra
         const res = await pergunta("\nNovamente? (S/N) ");
         continua = res === "S";
     }
 };
 
+// função de início do programa
 const main = async () => {
+    // executa rotina principal
     await processaVarios();
-
+    // fecha readline, exibe tempo de execução e termina limpo
     leitor.close();
-
     console.timeEnd("A execução demorou");
     process.exit(0);
 };
