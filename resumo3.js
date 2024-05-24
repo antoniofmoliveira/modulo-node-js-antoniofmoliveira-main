@@ -95,7 +95,7 @@ const perguntaSeContinua = async () => {
     const continua = res === "S";
     if (continua) ee.emit("pegarNomeArquivo", null);
     else {
-        finalizaPrograma();
+        ee.emit("finalizaPrograma", null);
     }
 };
 
@@ -112,5 +112,6 @@ ee.on("dadosDisponiveis", processaArquivo);
 ee.on("finalizado", exibeResumo);
 ee.on("resumoExibido", perguntaSeContinua);
 ee.on("falhaNaLeitura", perguntaSeContinua);
+ee.on("finalizaPrograma", finalizaPrograma);
 
 ee.emit("pegarNomeArquivo", null);
