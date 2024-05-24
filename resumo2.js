@@ -1,7 +1,7 @@
 /*
 Usando as versões promise de readline e fs
 */
-
+'use strict'
 import * as readline from "node:readline/promises";
 import { promises as fs } from "fs";
 import { EventEmitter } from "node:events";
@@ -34,6 +34,8 @@ const exibeResumo = async (resposta) => {
 };
 // usando on porque vários arquivos podem ser processados
 ee.on("finalizado", exibeResumo);
+
+
 
 // função principal
 const main = async () => {

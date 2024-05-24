@@ -1,6 +1,7 @@
 /*
 Usando as versões promise de fs e envolvendo readline em uma promise
 */
+'use strict'
 import { createInterface } from "readline";
 import { promises as fs } from "fs";
 import { EventEmitter } from "node:events";
