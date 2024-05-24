@@ -16,20 +16,27 @@ const rl = readline.createInterface({ input, output });
 // tratamento de eventos
 const ee = new EventEmitter();
 
+// exibe uma mensagem na tela
+const mensagem = async (texto) => {
+    console.log(texto);
+};
+
 // exibição do resumo de cada arquivo. resposta é um objeto com 3 propriedades
 //emite evento resumoExibido
 const exibeResumo = async (resposta) => {
     try {
-        console.log(
+        ee.emit(
+            "mensagem",
             `A soma dos números isolado nas linhas do arquivo é ${resposta.somaNumeros}.`
         );
-        console.log(
+        ee.emit(
+            "mensagem",
             `${resposta.linhasTexto} linhas contém texto que não são apenas números.\n`
         );
-        ee.emit("resumoExibido", null);
     } catch (erro) {
-        console.log(erro);
+        ee.emit("mensagem", erro);
     }
+    ee.emit("resumoExibido", null);
 };
 
 // faz a leitura do arquivo
@@ -40,7 +47,7 @@ const obtemConteudo = async (nomeArquivo) => {
         const data = await fs.readFile(nomeArquivo.nomeArquivo, "utf8");
         ee.emit("dadosDisponiveis", data);
     } catch (err) {
-        console.log("Erro na leitura do arquivo: " + err);
+        ee.emit("mensagem", "Erro na leitura do arquivo: " + err);
         ee.emit("falhaNaLeitura", null);
     }
 };
@@ -73,7 +80,8 @@ const processaArquivo = async (data) => {
             linhasTexto,
         });
     } catch (error) {
-        console.log(error);
+        ee.emit("mensagem", error);
+        ee.emit("falhaNaLeitura", null);
     }
 };
 
@@ -81,14 +89,14 @@ const processaArquivo = async (data) => {
 // emite eventos temNovoNome
 const obtemNomeArquivo = async () => {
     const nomeArquivo = await rl.question(`Informe o caminho do arquivo `);
-    console.log(`\nResumo do tratamento do arquivo '${nomeArquivo}':`);
+    ee.emit("mensagem", `\nResumo do tratamento do arquivo '${nomeArquivo}':`);
     ee.emit("temNovoNome", {
         nomeArquivo,
     });
 };
 
 // pergunda se processa novo arquivo
-// emite eventos pegarNomeArquivo
+// emite eventos pegarNomeArquivo e finalizar programa
 const perguntaSeContinua = async () => {
     // executa novamente? somente aceita S maiúscula qualquer outro encerra
     const res = await rl.question("\nNovamente? (S/N) ");
@@ -106,6 +114,7 @@ const finalizaPrograma = () => {
 };
 
 // usando on porque vários arquivos podem ser processados
+ee.on("mensagem", mensagem);
 ee.on("pegarNomeArquivo", obtemNomeArquivo);
 ee.on("temNovoNome", obtemConteudo);
 ee.on("dadosDisponiveis", processaArquivo);
